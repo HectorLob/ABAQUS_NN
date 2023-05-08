@@ -233,19 +233,23 @@ class SB_trainer():
 
       # Compute loss (gradient)
       if self.sobolev == 1:
-        sGRADOUTPUT_train_predicted = torch.autograd.grad(sOUTPUT_train_predicted.sum(), sINPUT_train, create_graph=True)[0]
+        sGRADOUTPUT_train_predicted = torch.autograd.grad(sOUTPUT_train_predicted.sum(), sINPUT_train, create_graph=True)[0] # eq. (10)
         sGRADOUTPUT_train_predicted = sGRADOUTPUT_train_predicted * self.INPUT_scales/self.OUTPUT_scales
         
-        # >> target gradient: dfdrho = 1
-        train_grad_loss_batch = self.loss_fun(sGRADOUTPUT_train_predicted[:,:,1], torch.tensor(1., dtype=torch.float))
+        # >> target gradient: dfdrho = 1 # eq. (5)
+        train_grad_loss_batch = self.loss_fun(sGRADOUTPUT_train_predicted[:,:,1], torch.tensor(1., dtype=torch.float)) # Additional loss term in eq. (10), H1-loss function (L∗f)
 
       else:
         train_grad_loss_batch = torch.tensor(0., dtype=torch.float)
 
       train_loss_batch = train_val_loss_batch + train_grad_loss_batch
 
+      # Compute the total loss for the current batch by multiplying the loss per batch with the number of samples in the batch:
       self.train_val_loss  += train_val_loss_batch.detach().numpy() * len(sOUTPUT_train)
       self.train_grad_loss += train_grad_loss_batch.detach().numpy() * len(sOUTPUT_train)
+
+      # .detach(): to create a new tensor that does not have the gradient computation history. 
+      # This is useful when you want to perform operations on the tensor without affecting the gradient computation of the original tensor.
 
       # Update weights & biases
       self.optimizer.zero_grad()
@@ -289,7 +293,7 @@ class SB_trainer():
       else:
         valid_grad_loss_batch = torch.tensor(0., dtype=torch.float)
 
-      valid_loss_batch = valid_val_loss_batch + valid_grad_loss_batch
+      # valid_loss_batch = valid_val_loss_batch + valid_grad_loss_batch # unused
 
       self.valid_val_loss  += valid_val_loss_batch.detach().numpy() * len(sOUTPUT_valid)
       self.valid_grad_loss += valid_grad_loss_batch.detach().numpy() * len(sOUTPUT_valid)

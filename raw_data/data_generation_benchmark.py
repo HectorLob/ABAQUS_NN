@@ -7,12 +7,16 @@
 import sys
 import pandas as pd
 import autograd.numpy as np
+import os
 
 from autograd import elementwise_grad as egrad
 
-sys.path.insert(0, '../offline_training')
+#sys.path.insert(0, '../offline_training')
+#print(sys.path)
+#from ..offline_training.util.coordinate_transforms import *
+# Add the 'offline_training' directory to the sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../offline_training')))
 from util.coordinate_transforms import *
-
 
 # INPUT --------------------------------------------------------
 # Material properties
@@ -128,4 +132,6 @@ output = pd.DataFrame({'p':     data[:, 0], \
                        'theta': data[:, 2], \
                        'lamda': data[:, 3]})
 
-output.to_csv("./raw_data_"+file_name+".csv", index = False)
+#output.to_csv("./raw_data_"+file_name+".csv", index = False)
+output_file_path = os.path.join(os.path.dirname(__file__), "raw_data_" + file_name + ".csv")
+output.to_csv(output_file_path, index=False)
